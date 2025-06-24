@@ -1,0 +1,38 @@
+program
+int: x, y;
+float: media;
+char: opcao;
+
+% Teste de comentario de linha inicial
+begin
+  { Teste de comentario em bloco
+    sobre o programa
+  }
+  out("Digite o valor de x: ");
+  in(x);
+  out("Digite o valor de y: ");
+  in(y);
+  
+  media := (x + y) / 2.0;
+  out("Media dos valores: ");
+  out(media);
+  
+  if (media >= 5.0) then
+    out("Media suficiente!");
+  else
+    out("Media insuficiente!");
+  end;
+  
+  out("Digite a opcao (S/N): ");
+  in(opcao);
+  while (opcao != 'N' && opcao != 'n') do % Erro intencional: uso de & em vez de &&
+    out("Digite novos valores para x e y: ");
+    in(x);
+    in(y);
+    media := (x + y) / 2.0;
+    out("Nova media: ");
+    out(media);
+    out("Digite a opcao (S/N): ");
+    in(opcao);
+  end;
+end

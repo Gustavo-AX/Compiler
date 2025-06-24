@@ -1,0 +1,14 @@
+program
+float: raio, area = 0.0;
+begin
+repeat
+in(raio);
+char: resposta;
+if (raio > 0.0) then
+area = 3.0 * raio * raio;
+out (area);
+end;
+out ("Deseja continuar?");
+in (resp);
+until (resp == 'N' || resp == 'n');
+end
