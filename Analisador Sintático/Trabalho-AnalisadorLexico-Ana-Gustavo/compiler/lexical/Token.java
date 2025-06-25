@@ -42,9 +42,12 @@ public class Token {
         PROGRAM,           // program
         BEGIN,             // begin
         END,               // end
-        INTEGER_CONST,     // int
-        FLOAT_CONST,       // float
-        CHAR_CONST,        // char 
+        INT,               // palavra reservada
+        FLOAT,             // palavra reservada
+        CHAR,              // palavra reservada
+        INTEGER_CONST,     // int - numero
+        FLOAT_CONST,       // float - numero
+        CHAR_CONST,        // char- letra
         IF,                // if
         THEN,              // then
         ELSE,              // else

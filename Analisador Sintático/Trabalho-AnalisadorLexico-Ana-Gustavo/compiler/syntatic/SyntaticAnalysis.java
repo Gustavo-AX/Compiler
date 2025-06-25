@@ -1,6 +1,6 @@
 package syntatic;
 
-/*import static lexical.Token.Type.ADD;
+import static lexical.Token.Type.ADD;
 import static lexical.Token.Type.AND;
 import static lexical.Token.Type.ASSIGN;
 import static lexical.Token.Type.BEGIN;
@@ -41,14 +41,18 @@ import static lexical.Token.Type.THEN;
 import static lexical.Token.Type.UNTIL;
 import static lexical.Token.Type.WHILE;
 import static lexical.Token.Type.WRITE;
+import static lexical.Token.Type.END_OF_FILE;
+import static lexical.Token.Type.IDENTIFIER;
+import static lexical.Token.Type.LITERAL;
+import static lexical.Token.Type.INT;
+import static lexical.Token.Type.FLOAT;
+import static lexical.Token.Type.CHAR;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import interpreter.Environment;
-import interpreter.Interpreter;
-import interpreter.InterpreterException;
-import interpreter.command.AssignCommand;
+
+/*import interpreter.command;
 import interpreter.command.BlocksCommand;
 import interpreter.command.Command;
 import interpreter.command.DebugCommand;
@@ -69,11 +73,14 @@ import interpreter.expr.UnaryExpr;
 import interpreter.expr.Variable;
 import interpreter.expr.AccessExpr;
 import interpreter.function.StandardFunction;
-import interpreter.value.BoolValue;
-import interpreter.value.FunctionValue;
-import interpreter.value.NumberValue;
+*/
+
+import interpreter.value.CharValue;
+import interpreter.value.DoubleValue;
+import interpreter.value.IntegerValue;
 import interpreter.value.TextValue;
 import interpreter.value.Value;
+
 import lexical.LexicalAnalysis;
 import lexical.Token;
 
@@ -82,21 +89,27 @@ public class SyntaticAnalysis {
     private LexicalAnalysis lex;
     private Token current;
     private Token previous;
-    private Environment environment;
+    //private Environment environment;
 
     public SyntaticAnalysis(LexicalAnalysis lex) {
         this.lex = lex;
         this.current = lex.nextToken();
         this.previous = null;
-        this.environment = Interpreter.globals;
+        //this.environment = Interpreter.globals;
     }
 
-    public Command process() {
+    /*public Command process() {
         Command cmd = procCode();
         eat(END_OF_FILE);
 
         return cmd;
+    }*/
+
+    public void process() {
+        procProgram();
+        eat(END_OF_FILE);
     }
+
 
     private void advance() {
         // System.out.println("Found " + current);
@@ -150,7 +163,285 @@ public class SyntaticAnalysis {
         throw new SyntaticException(current.line, reason);
     }
 
-    // <code> ::= { <cmd> }
+// program ::= program [decl-list] begin stmt-list end
+    private void procProgram() {
+        eat(PROGRAM);
+
+        if (check(INTEGER_CONST, FLOAT_CONST, CHAR_CONST)) {
+            procDeclList();
+        }
+
+        eat(BEGIN);
+
+        procStmtList();
+
+        eat(END);
+    }
+
+// decl-list ::= decl {";" decl}
+    private void procDeclList() {
+        procDecl();
+
+        while (match(SEMICOLON)) {
+            procDecl();
+        }
+    }
+
+
+// decl ::= type “:” ident-list “;”
+    private void procDecl() {
+        procType();
+        procIdentList();
+        eat(SEMICOLON);
+    }
+
+// ident-list ::= identifier {"," identifier}
+    private void procIdentList() {
+        eat(IDENTIFIER);
+
+        //Vai pegando identificadores separados por virgula
+        while (match(COMMA)) {
+            eat(IDENTIFIER);
+        }
+    }
+
+// type ::= int | float | char
+    private void procType() {
+        if (match(INT, FLOAT, CHAR)) {
+            // Faz nada por enquanto
+        } else {
+            reportError();
+        }
+    }
+
+// stmt-list ::= stmt {";" stmt}
+    private void procStmtList() {
+        procStmt();
+
+        while (match(SEMICOLON)) {
+            procStmt();
+        }
+    }
+
+// stmt ::= assign-stmt | if-stmt | while-stmt | repeat-stmt | read-stmt | write-stmt
+    private void procStmt() {
+        if (check(IDENTIFIER)) {
+            procAssignStmt();
+        } else if (check(IF)) {
+            procIfStmt();
+        } else if (check(WHILE)) {
+            procWhileStmt();
+        } else if (check(REPEAT)) {
+            procRepeatStmt();
+        } else if (check(IN)) {
+            procReadStmt();
+        } else if (check(OUT)) {
+            procWriteStmt();
+        } else {
+            reportError();
+        }
+    }
+
+
+// assign-stmt ::= identifier "=" simple_expr
+    private void procAssignStmt() {
+        eat(IDENTIFIER);
+
+        eat(ASSIGN);
+
+        procSimpleExpr();
+    }
+
+
+// if-stmt ::= if condition then [decl-list] stmt-list end | if condition then [decl-list] stmt-list else declaration stmt- list end
+    private void procIfStmt() {
+        eat(IF);
+
+        procCondition();
+
+        eat(THEN);
+
+        if (check(INTEGER_CONST, FLOAT_CONST, CHAR_CONST)) {
+            procDeclList();
+        }
+
+        procStmtList();
+
+        if (match(ELSE)) {
+            if (check(INTEGER_CONST, FLOAT_CONST, CHAR_CONST)) {
+                procDeclList();
+            }
+            procStmtList();
+        }
+
+        eat(END);
+    }
+
+
+// condition ::= expression
+
+    private void procCondition() {
+
+        procExpression();
+
+    }
+
+// repeat-stmt ::= repeat [decl-list] stmt-list stmt-suffix
+
+    private void procRepeatStmt() {
+        eat(REPEAT);
+
+        if (check(INTEGER_CONST, FLOAT_CONST, CHAR_CONST)) {
+            procDeclList();
+        }
+
+        procStmtList();
+
+        procStmtSuffix();
+    }
+
+// stmt-suffix ::= until condition
+    private void procStmtSuffix() {
+        eat(UNTIL);
+
+        procCondition();
+    }
+
+// while-stmt ::= stmt-prefix [decl-list] stmt-list end
+    private void procWhileStmt() {
+
+        procStmtPrefix();
+
+        if (check(INTEGER_CONST, FLOAT_CONST, CHAR_CONST)) {
+            procDeclList();
+        }
+
+        procStmtList();
+
+        eat(END);
+    }
+
+// stmt-prefix ::= while condition do
+    private void procStmtPrefix() {
+        eat(WHILE);
+        procCondition();
+        eat(DO);
+    }
+
+
+// read-stmt ::= in "(" identifier ")"
+    private void procReadStmt() {
+        eat(IN);
+
+        eat(OPEN_PAR);
+
+        eat(IDENTIFIER);
+
+        eat(CLOSE_PAR);
+    }
+
+// write-stmt ::= out "(" writable ")"
+    private void procWriteStmt() {
+        eat(OUT);
+
+        eat(OPEN_PAR);
+
+        procWritable();
+
+        eat(CLOSE_PAR);
+    }
+
+// writable ::= simple-expr | literal
+    private void procWritable() {
+
+        if (check(IDENTIFIER)) {
+            procSimpleExpr();
+        } else if (check(INTEGER_CONST, FLOAT_CONST, CHAR_CONST, LITERAL)) {
+            eat(current.type); 
+        } else {
+            reportError();
+        }
+    }
+
+// expression ::= simple-expr | simple-expr relop simple-expr
+    private void procExpression() {
+
+        procSimpleExpr();
+
+        if (check(EQUALS, GREATER_THAN, GREATER_EQUAL, LOWER_THAN, LOWER_EQUAL, NOT_EQUALS)) {
+            procRelOp();
+
+            procSimpleExpr();
+        }
+    }
+
+// simple-expr ::= term | simple-expr addop term
+    private void procSimpleExpr() {
+
+        procTerm();
+
+        while (check(ADD, SUB)) {
+            procAddOp();
+
+            procTerm();
+        }
+    }
+
+// term ::= factor-a | term mulop factor-a
+    private void procTerm() {
+
+        procFactorA();
+
+        while (check(MUL, DIV, AND)) {
+            procMulOp();
+
+            procFactorA();
+        }
+    }
+
+// fator-a ::= factor | ! factor | "-" factor
+    private void procFactorA() {
+
+        if (match(NOT, SUB)) procFactor();
+
+        else procFactor();
+    }
+
+// factor ::= identifier | constant | "(" expression ")"
+    private void procFactor() {
+        if (match(IDENTIFIER)){
+            // faz nada por enquanto
+        } else if (match(INTEGER_CONST, FLOAT_CONST, CHAR_CONST)) {
+            // faz nada por enquanto, nem preciso chamar procConstant, como são terminais
+            // já coloco aqui
+        } else if (match(OPEN_PAR)) {
+            procExpression();
+            eat(CLOSE_PAR);
+        } else {
+            reportError();
+        }
+    }
+
+// relop ::= "==" | ">" | ">=" | "<" | "<=" | "!="
+    private void procRelOp() {
+        if (!match(EQUALS, GREATER_THAN, GREATER_EQUAL, LOWER_THAN, LOWER_EQUAL, NOT_EQUALS)) reportError();
+    }
+
+// addop ::= "+" | "-" | ||
+    private void procAddOp() {
+        if (!match(ADD, SUB, OR)) reportError();
+    }
+
+// mulop ::= "*" | "/" | &&
+    private void procMulOp() {
+        if (!match(MUL, DIV, AND)) reportError();
+    }
+    
+// constant ::= integer_const | float_const | char_const
+
+
+
+/*   // <code> ::= { <cmd> }
     private BlocksCommand procCode() {
         List<Command> cmds = new ArrayList<Command>();
         int line = current.line;
@@ -740,5 +1031,5 @@ public class SyntaticAnalysis {
         eat(NAME);
         return previous;
     }
-
-}*/
+*/
+}
