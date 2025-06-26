@@ -1,9 +1,10 @@
 package compiler;
 
-import lexical.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import lexical.*;
+import syntatic.*;
 
 public class exe {
 
@@ -20,12 +21,8 @@ public class exe {
             System.out.println("Analisando: " + arquivo.getName());
 
             try (LexicalAnalysis lex = new LexicalAnalysis(new FileInputStream(arquivo))) {
-                Token token;
-                do {
-                    token = lex.nextToken();
-                    System.out.printf("Token: %-15s Lexema: %-10s Linha: %d%n",
-                            token.type, token.lexeme, token.line);
-                } while (token.type != Token.Type.END_OF_FILE);
+                SyntaticAnalysis syn = new SyntaticAnalysis(lex); 
+                syn.process();   
             } catch (IOException e) {
                 System.err.println("Erro ao ler o arquivo: " + arquivo.getName());
             } catch (Exception e) {

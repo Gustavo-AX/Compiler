@@ -192,8 +192,7 @@ public class LexicalAnalysis implements AutoCloseable {
                         state = 14;
                         token.lexeme = "";
                         token.type = Token.Type.END_OF_FILE;
-                    }
-                    if (c != '\n') {
+                    } else if (c != '\n') {
                         state = 5;
                         token.lexeme += (char) c;
                     } else {
@@ -204,6 +203,7 @@ public class LexicalAnalysis implements AutoCloseable {
                     }
 
                     break;
+                    
                 case 6:
                     if(c == -1) {
                         state = 14;

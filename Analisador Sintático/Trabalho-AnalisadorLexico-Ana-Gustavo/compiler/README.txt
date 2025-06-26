@@ -1,3 +1,4 @@
-Para compilar, nessa pasta faça
-    javac -d out $(find . -name "*.java")
-Para executar, dê seu jeito
+Para compilar, abra um terminal nessa pasta e faça:
+    javac -d . $(find . -name "*.java")
+Para executar, faça:
+    java compiler.exe
