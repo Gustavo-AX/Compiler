@@ -1,0 +1,31 @@
+program
+int: pontuacao, pontuacaoMaxima, pontuacaoMinima;
+char: disponibilidade;
+begin
+disponibilidade = 'S';
+pontuacaoMinima = 50;
+pontuacaoMaxima = 100;
+out("Pontuacao Candidato: ");
+in(pontuacao);
+out("Disponibilidade Candidato: ");
+in(disponibilidade);
+
+{ Comentario
+grande
+while (pontuacao>0 && (pontuação<=pontuacaoMaxima) do
+int: cont;
+cont = cont + 1;
+if ((pontuação > pontuacaoMinima) && (disponibilidade==1)) then
+out("Candidato aprovado")
+else
+out("Candidato reprovado")
+end
+out("Pontuacao Candidato: ");
+in(pontuacao);
+out("Disponibilidade
+Candidato: ");
+in(disponibilidade);
+end
+out (cont);
+end}
+end;

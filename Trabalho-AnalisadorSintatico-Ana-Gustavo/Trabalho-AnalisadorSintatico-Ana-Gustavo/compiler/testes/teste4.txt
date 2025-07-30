@@ -1,0 +1,27 @@
+program
+int: a, b, c, maior, outro;
+begin
+repeat
+out("A");
+in(a);
+out("B");
+in(b);
+out("C");
+in(c);
+%Verifica o maior
+if ( (a>b) && (a>c) ) then
+   in(c);
+else
+maior = a;
+if (b>c) then
+     maior = b;
+else
+     maior = c;
+end;
+end;
+out("Maior valor:");
+out (maior);
+out ("Outro ");
+in(outro);
+until (outro == 0);
+end;
